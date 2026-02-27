@@ -1,0 +1,95 @@
+.card {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  background: white;
+  border-left: 5px solid;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.titulo {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #7B7B7B;
+  margin-bottom: 1rem;
+}
+
+.conteudo {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.valor {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.unidade {
+  font-size: 0.875rem;
+  color: #999;
+  font-weight: 500;
+}
+
+/* Temas com cores pastel */
+.primario {
+  background: linear-gradient(135deg, #EBF8FC 0%, #E8F4FC 100%);
+  border-left-color: #A0D4E0;
+}
+
+.primario .valor {
+  color: #4A8FA8;
+}
+
+.primario .titulo {
+  color: #5B9BBC;
+}
+
+.sucesso {
+  background: linear-gradient(135deg, #E8F8F0 0%, #E0F5F0 100%);
+  border-left-color: #A8D5BA;
+}
+
+.sucesso .valor {
+  color: #449966;
+}
+
+.sucesso .titulo {
+  color: #5B9B77;
+}
+
+.aviso {
+  background: linear-gradient(135deg, #FFF5E8 0%, #FFEDDB 100%);
+  border-left-color: #FFD4A3;
+}
+
+.aviso .valor {
+  color: #D97706;
+}
+
+.aviso .titulo {
+  color: #BE8C3A;
+}
+
+.perigo {
+  background: linear-gradient(135deg, #FFE8E8 0%, #FFEDED 100%);
+  border-left-color: #FFB8B8;
+}
+
+.perigo .valor {
+  color: #C64567;
+}
+
+.perigo .titulo {
+  color: #C85A7A;
+}
