@@ -26,6 +26,7 @@ export interface DecodedToken {
 class AuthService {
   private token: string | null = null;
   private tokenExpiry: number | null = null;
+  private tokenChave: string | null = null; // Chave usada para obter o token
   private tokenRefreshBuffer = 30; // renovar 30s antes de expirar
 
   private getApiUrl() {
@@ -40,8 +41,20 @@ class AuthService {
     return configService.getChave();
   }
 
-  private getUnidadeNegocio() {
-    return configService.getUnidadeNegocio();
+  /**
+   * Invalida o token se a chave mudou
+   */
+  private checkChaveChanged() {
+    const chaveAtual = this.getChave();
+    if (this.tokenChave !== null && this.tokenChave !== chaveAtual) {
+      console.log('[AuthService] Chave mudou, invalidando token');
+      this.token = null;
+      this.tokenExpiry = null;
+      localStorage.removeItem('token');
+      localStorage.removeItem('tokenExpiry');
+      localStorage.removeItem('tokenChave');
+    }
+    this.tokenChave = chaveAtual;
   }
 
   /**
@@ -49,10 +62,14 @@ class AuthService {
    */
   async login(): Promise<string> {
     try {
+      this.checkChaveChanged();
+      
       const apiUrl = this.getApiUrl();
       const endpoint = this.getTokenEndpoint();
       const chave = this.getChave();
-      const unidade = this.getUnidadeNegocio();
+      
+      // Busca a primeira empresa para usar como unidade de negócio
+      const unidade = await configService.getPrimeiraEmpresa();
 
       if (!chave) {
         throw new Error('Chave não configurada. Acesse com ?chave=SUA_CHAVE na URL');
@@ -87,10 +104,14 @@ class AuthService {
     this.token = token;
     // Calcula o timestamp de expiração
     this.tokenExpiry = Date.now() + expiresIn * 1000;
+    this.tokenChave = this.getChave();
     
     // Salva no localStorage para persistência
     localStorage.setItem('token', token);
     localStorage.setItem('tokenExpiry', this.tokenExpiry.toString());
+    if (this.tokenChave) {
+      localStorage.setItem('tokenChave', this.tokenChave);
+    }
   }
 
   /**
@@ -99,6 +120,14 @@ class AuthService {
   private restoreToken() {
     const token = localStorage.getItem('token');
     const expiry = localStorage.getItem('tokenExpiry');
+    const savedChave = localStorage.getItem('tokenChave');
+    const currentChave = this.getChave();
+
+    // Não restaura se a chave mudou
+    if (savedChave !== currentChave) {
+      console.log('[AuthService] Chave diferente do token salvo, ignorando cache');
+      return false;
+    }
 
     if (token && expiry) {
       const expiryTime = parseInt(expiry, 10);
@@ -107,6 +136,7 @@ class AuthService {
       if (Date.now() < expiryTime) {
         this.token = token;
         this.tokenExpiry = expiryTime;
+        this.tokenChave = savedChave;
         return true;
       }
     }
@@ -118,6 +148,9 @@ class AuthService {
    * Obtém o token válido, renovando se necessário
    */
   async getToken(): Promise<string> {
+    // Verifica se a chave mudou
+    this.checkChaveChanged();
+    
     // Tenta restaurar de localStorage
     if (!this.token) {
       this.restoreToken();

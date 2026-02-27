@@ -30,9 +30,10 @@ api.interceptors.request.use(async (config) => {
   }
 });
 
-// Cache de empresas
+// Cache de empresas (invalidado quando a chave muda)
 let empresasCache: Map<number, Empresa> = new Map();
 let empresasCacheExpiresAt: number = 0;
+let empresasCacheChave: string | null = null;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
 
 class PDVService {
@@ -41,6 +42,16 @@ class PDVService {
    */
   private async carregarEmpresas(): Promise<Map<number, Empresa>> {
     try {
+      const chaveAtual = configService.getChave();
+      
+      // Invalidar cache se a chave mudou
+      if (empresasCacheChave !== chaveAtual) {
+        console.log('[pdvService] Chave mudou, invalidando cache de empresas');
+        empresasCache = new Map();
+        empresasCacheExpiresAt = 0;
+        empresasCacheChave = chaveAtual;
+      }
+      
       // Se cache ainda é válido, retornar
       if (empresasCache.size > 0 && Date.now() < empresasCacheExpiresAt) {
         console.log('[pdvService] Usando cache de empresas:', empresasCache.size, 'empresas');
