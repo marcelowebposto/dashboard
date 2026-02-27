@@ -2,8 +2,9 @@ import axios from 'axios';
 import { DashboardData, IndicadorEmpresa, RelatorioOFX, CaixasDesconsolidadosResponse, CaixasDesconsolidados, Empresa, EmpresasResponse, OFXResponse, OFXRegistro, OFXEmpresa, RelatorioOFXCompleto, CartaoPagamentoResponse, CartaoPagamentoRegistro, CartaoPagamentoEmpresa, RelatorioCartoesPagamento } from '../types';
 import { mockIndicadores, mockRelatorioOFX } from './mockData';
 import authService from './authService';
+import configService from './configService';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_BASE_URL = configService.getApiUrl();
 
 console.log('[pdvService] API_BASE_URL configurada:', API_BASE_URL);
 
@@ -46,7 +47,7 @@ class PDVService {
         return empresasCache;
       }
 
-      const chave = (import.meta.env as unknown as any).VITE_CHAVE;
+      const chave = configService.getChave();
       const url = `${API_BASE_URL}/INTEGRACAO/EMPRESAS?chave=${chave}`;
       console.log('[pdvService] Buscando empresas em:', url);
 

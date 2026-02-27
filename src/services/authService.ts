@@ -1,4 +1,5 @@
 import axios from 'axios';
+import configService from './configService';
 
 interface ImportMetaEnv {
   readonly VITE_API_URL?: string;
@@ -28,7 +29,7 @@ class AuthService {
   private tokenRefreshBuffer = 30; // renovar 30s antes de expirar
 
   private getApiUrl() {
-    return (import.meta.env as unknown as ImportMetaEnv).VITE_API_URL || 'http://localhost:8080';
+    return configService.getApiUrl();
   }
 
   private getTokenEndpoint() {
@@ -36,11 +37,11 @@ class AuthService {
   }
 
   private getChave() {
-    return (import.meta.env as unknown as ImportMetaEnv).VITE_CHAVE;
+    return configService.getChave();
   }
 
   private getUnidadeNegocio() {
-    return (import.meta.env as unknown as ImportMetaEnv).VITE_UNIDADE_NEGOCIO || '55229';
+    return configService.getUnidadeNegocio();
   }
 
   /**
@@ -54,7 +55,7 @@ class AuthService {
       const unidade = this.getUnidadeNegocio();
 
       if (!chave) {
-        throw new Error('VITE_CHAVE não está configurada nas variáveis de ambiente');
+        throw new Error('Chave não configurada. Acesse com ?chave=SUA_CHAVE na URL');
       }
 
       const url = `${apiUrl}${endpoint}/${unidade}?CHAVE=${chave}`;
