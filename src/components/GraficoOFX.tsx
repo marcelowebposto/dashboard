@@ -46,6 +46,7 @@ export const GraficoOFX: React.FC<GraficoOFXProps> = ({ refreshKey }) => {
   const [mesSelecionado, setMesSelecionado] = useState<string | null>(null);
   const [mostrarDetalhes, setMostrarDetalhes] = useState(false);
   const [empresaSelecionada, setEmpresaSelecionada] = useState<{ id: number; nome: string } | null>(null);
+  const [periodoMeses, setPeriodoMeses] = useState(1);
 
   useEffect(() => {
     carregarDados();
@@ -137,8 +138,8 @@ export const GraficoOFX: React.FC<GraficoOFXProps> = ({ refreshKey }) => {
         };
       })
       .sort((a, b) => a._sortKey - b._sortKey)
-      .slice(-6);
-  }, [relatorio]);
+      .slice(-periodoMeses);
+  }, [relatorio, periodoMeses]);
 
   // Calcular dados por empresa para o mês selecionado
   const dadosEmpresasPorMes = useMemo(() => {
@@ -291,9 +292,18 @@ export const GraficoOFX: React.FC<GraficoOFXProps> = ({ refreshKey }) => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.titulo}>Conciliação de OFX</h2>
-        <button className={styles.btnAtualizar} onClick={carregarDados}>
-          Atualizar
-        </button>
+        <label className={styles.labelPeriodo}>
+          Período:
+          <select
+            value={periodoMeses}
+            onChange={(e) => setPeriodoMeses(parseInt(e.target.value, 10))}
+            className={styles.selectPeriodo}
+          >
+            <option value={1}>Último mês</option>
+            <option value={3}>Últimos 3 meses</option>
+            <option value={6}>Últimos 6 meses</option>
+          </select>
+        </label>
       </div>
 
       {/* Cards de resumo */}

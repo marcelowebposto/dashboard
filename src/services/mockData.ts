@@ -35,20 +35,61 @@ export const mockRelatorioOFXCompleto: RelatorioOFXCompleto = {
     },
   ],
   registrosPorData: [
-    // Empresa 1 - últimos 6 meses
-    { empresaId: 1, quantidadeRegistros: 250, data: '2026-02-15', quantidadeConciliados: 150, quantidadeNaoConciliados: 100 },
-    { empresaId: 1, quantidadeRegistros: 260, data: '2026-01-15', quantidadeConciliados: 156, quantidadeNaoConciliados: 104 },
-    { empresaId: 1, quantidadeRegistros: 240, data: '2025-12-15', quantidadeConciliados: 144, quantidadeNaoConciliados: 96 },
-    { empresaId: 1, quantidadeRegistros: 255, data: '2025-11-15', quantidadeConciliados: 153, quantidadeNaoConciliados: 102 },
-    { empresaId: 1, quantidadeRegistros: 245, data: '2025-10-15', quantidadeConciliados: 147, quantidadeNaoConciliados: 98 },
-    { empresaId: 1, quantidadeRegistros: 250, data: '2025-09-15', quantidadeConciliados: 150, quantidadeNaoConciliados: 100 },
-    // Empresa 2 - últimos 6 meses
-    { empresaId: 2, quantidadeRegistros: 340, data: '2026-02-15', quantidadeConciliados: 272, quantidadeNaoConciliados: 68 },
-    { empresaId: 2, quantidadeRegistros: 350, data: '2026-01-15', quantidadeConciliados: 280, quantidadeNaoConciliados: 70 },
-    { empresaId: 2, quantidadeRegistros: 330, data: '2025-12-15', quantidadeConciliados: 264, quantidadeNaoConciliados: 66 },
-    { empresaId: 2, quantidadeRegistros: 345, data: '2025-11-15', quantidadeConciliados: 276, quantidadeNaoConciliados: 69 },
-    { empresaId: 2, quantidadeRegistros: 335, data: '2025-10-15', quantidadeConciliados: 268, quantidadeNaoConciliados: 67 },
-    { empresaId: 2, quantidadeRegistros: 340, data: '2025-09-15', quantidadeConciliados: 272, quantidadeNaoConciliados: 68 },
+    // Fevereiro 2026 - com alguns dias sem registros propositalmente
+    { empresaId: 1, quantidadeRegistros: 120, data: '2026-02-02', quantidadeConciliados: 72, quantidadeNaoConciliados: 48 },
+    { empresaId: 1, quantidadeRegistros: 115, data: '2026-02-03', quantidadeConciliados: 69, quantidadeNaoConciliados: 46 },
+    // Faltam dias 4, 5 (pular propositalmente)
+    { empresaId: 1, quantidadeRegistros: 118, data: '2026-02-06', quantidadeConciliados: 70, quantidadeNaoConciliados: 48 },
+    { empresaId: 1, quantidadeRegistros: 125, data: '2026-02-09', quantidadeConciliados: 75, quantidadeNaoConciliados: 50 },
+    { empresaId: 1, quantidadeRegistros: 110, data: '2026-02-10', quantidadeConciliados: 66, quantidadeNaoConciliados: 44 },
+    // Falta dia 11
+    { empresaId: 1, quantidadeRegistros: 122, data: '2026-02-12', quantidadeConciliados: 73, quantidadeNaoConciliados: 49 },
+    { empresaId: 1, quantidadeRegistros: 128, data: '2026-02-13', quantidadeConciliados: 76, quantidadeNaoConciliados: 52 },
+    { empresaId: 1, quantidadeRegistros: 105, data: '2026-02-16', quantidadeConciliados: 63, quantidadeNaoConciliados: 42 },
+    { empresaId: 1, quantidadeRegistros: 120, data: '2026-02-17', quantidadeConciliados: 72, quantidadeNaoConciliados: 48 },
+    { empresaId: 1, quantidadeRegistros: 130, data: '2026-02-18', quantidadeConciliados: 78, quantidadeNaoConciliados: 52 },
+    { empresaId: 1, quantidadeRegistros: 125, data: '2026-02-19', quantidadeConciliados: 75, quantidadeNaoConciliados: 50 },
+    { empresaId: 1, quantidadeRegistros: 115, data: '2026-02-20', quantidadeConciliados: 69, quantidadeNaoConciliados: 46 },
+    // Faltam dias 23, 24
+    { empresaId: 1, quantidadeRegistros: 118, data: '2026-02-25', quantidadeConciliados: 70, quantidadeNaoConciliados: 48 },
+    { empresaId: 1, quantidadeRegistros: 122, data: '2026-02-26', quantidadeConciliados: 73, quantidadeNaoConciliados: 49 },
+
+    // Janeiro 2026 - mais dias
+    { empresaId: 1, quantidadeRegistros: 125, data: '2026-01-02', quantidadeConciliados: 75, quantidadeNaoConciliados: 50 },
+    { empresaId: 1, quantidadeRegistros: 130, data: '2026-01-05', quantidadeConciliados: 78, quantidadeNaoConciliados: 52 },
+    { empresaId: 1, quantidadeRegistros: 128, data: '2026-01-06', quantidadeConciliados: 76, quantidadeNaoConciliados: 52 },
+    // Falta dia 7
+    { empresaId: 1, quantidadeRegistros: 120, data: '2026-01-08', quantidadeConciliados: 72, quantidadeNaoConciliados: 48 },
+    { empresaId: 1, quantidadeRegistros: 115, data: '2026-01-09', quantidadeConciliados: 69, quantidadeNaoConciliados: 46 },
+    { empresaId: 1, quantidadeRegistros: 122, data: '2026-01-12', quantidadeConciliados: 73, quantidadeNaoConciliados: 49 },
+    { empresaId: 1, quantidadeRegistros: 125, data: '2026-01-13', quantidadeConciliados: 75, quantidadeNaoConciliados: 50 },
+    { empresaId: 1, quantidadeRegistros: 118, data: '2026-01-14', quantidadeConciliados: 70, quantidadeNaoConciliados: 48 },
+    { empresaId: 1, quantidadeRegistros: 110, data: '2026-01-15', quantidadeConciliados: 66, quantidadeNaoConciliados: 44 },
+    { empresaId: 1, quantidadeRegistros: 120, data: '2026-01-16', quantidadeConciliados: 72, quantidadeNaoConciliados: 48 },
+    { empresaId: 1, quantidadeRegistros: 128, data: '2026-01-19', quantidadeConciliados: 76, quantidadeNaoConciliados: 52 },
+    { empresaId: 1, quantidadeRegistros: 122, data: '2026-01-20', quantidadeConciliados: 73, quantidadeNaoConciliados: 49 },
+    // Faltam dias 21, 22
+    { empresaId: 1, quantidadeRegistros: 125, data: '2026-01-23', quantidadeConciliados: 75, quantidadeNaoConciliados: 50 },
+    { empresaId: 1, quantidadeRegistros: 130, data: '2026-01-26', quantidadeConciliados: 78, quantidadeNaoConciliados: 52 },
+    { empresaId: 1, quantidadeRegistros: 115, data: '2026-01-27', quantidadeConciliados: 69, quantidadeNaoConciliados: 46 },
+    { empresaId: 1, quantidadeRegistros: 120, data: '2026-01-28', quantidadeConciliados: 72, quantidadeNaoConciliados: 48 },
+    { empresaId: 1, quantidadeRegistros: 118, data: '2026-01-29', quantidadeConciliados: 70, quantidadeNaoConciliados: 48 },
+
+    // Empresa 2 - também com alguns gaps
+    { empresaId: 2, quantidadeRegistros: 150, data: '2026-02-02', quantidadeConciliados: 120, quantidadeNaoConciliados: 30 },
+    { empresaId: 2, quantidadeRegistros: 145, data: '2026-02-03', quantidadeConciliados: 116, quantidadeNaoConciliados: 29 },
+    { empresaId: 2, quantidadeRegistros: 148, data: '2026-02-06', quantidadeConciliados: 118, quantidadeNaoConciliados: 30 },
+    { empresaId: 2, quantidadeRegistros: 155, data: '2026-02-09', quantidadeConciliados: 124, quantidadeNaoConciliados: 31 },
+    { empresaId: 2, quantidadeRegistros: 140, data: '2026-02-10', quantidadeConciliados: 112, quantidadeNaoConciliados: 28 },
+    { empresaId: 2, quantidadeRegistros: 152, data: '2026-02-12', quantidadeConciliados: 121, quantidadeNaoConciliados: 31 },
+    { empresaId: 2, quantidadeRegistros: 158, data: '2026-02-13', quantidadeConciliados: 126, quantidadeNaoConciliados: 32 },
+    { empresaId: 2, quantidadeRegistros: 135, data: '2026-02-16', quantidadeConciliados: 108, quantidadeNaoConciliados: 27 },
+    { empresaId: 2, quantidadeRegistros: 150, data: '2026-02-17', quantidadeConciliados: 120, quantidadeNaoConciliados: 30 },
+    { empresaId: 2, quantidadeRegistros: 160, data: '2026-02-18', quantidadeConciliados: 128, quantidadeNaoConciliados: 32 },
+    // Falta dia 19
+    { empresaId: 2, quantidadeRegistros: 145, data: '2026-02-20', quantidadeConciliados: 116, quantidadeNaoConciliados: 29 },
+    { empresaId: 2, quantidadeRegistros: 148, data: '2026-02-25', quantidadeConciliados: 118, quantidadeNaoConciliados: 30 },
+    { empresaId: 2, quantidadeRegistros: 152, data: '2026-02-26', quantidadeConciliados: 121, quantidadeNaoConciliados: 31 },
   ],
   totalGeralRegistros: 3500,
   totalGeralConciliados: 2500,

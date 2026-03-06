@@ -5,6 +5,7 @@ import CaixasAbertosPanel from './CaixasAbertosPanel';
 import ConsolidacaoCaixasPanel from './ConsolidacaoCaixasPanel';
 import GraficoOFX from './GraficoOFX';
 import GraficoCartoes from './GraficoCartoes';
+import DiasOFXSemRegistros from './DiasOFXSemRegistros';
 import styles from './Dashboard.module.css';
 
 export const Dashboard: React.FC = () => {
@@ -44,7 +45,7 @@ export const Dashboard: React.FC = () => {
   return (
     <div className={styles.dashboard}>
       <header className={styles.header}>
-        <h1 className={styles.titulo}>Dashboard PDV</h1>
+        <h1 className={styles.titulo}>Painel de Operações Financeiras</h1>
         <div className={styles.headerInfo}>
           <span className={styles.atualizacao}>
             Última atualização: {ultimaAtualizacao}
@@ -70,6 +71,7 @@ export const Dashboard: React.FC = () => {
           <CaixasAbertosPanel indicadores={indicadores} />
           <ConsolidacaoCaixasPanel indicadores={indicadores} />
           <GraficoOFX refreshKey={refreshKey} />
+          <DiasOFXSemRegistros refreshKey={refreshKey} />
           <GraficoCartoes refreshKey={refreshKey} />
         </main>
       )}

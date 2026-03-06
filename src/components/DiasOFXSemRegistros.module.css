@@ -1,0 +1,326 @@
+.container {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  margin-bottom: 2rem;
+}
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.titulo {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #A8D5BA 0%, #B8E6F0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.btnDetalhar {
+  width: 100%;
+  padding: 1rem;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, #A8D5BA 0%, #B8E6F0 100%);
+  border: 2px solid rgba(168, 213, 186, 0.5);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #3d6b4f;
+  transition: all 0.2s;
+}
+
+.btnDetalhar:hover {
+  background: linear-gradient(135deg, #88C5AA 0%, #98D6E0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 213, 186, 0.4);
+}
+
+.btnDetalhar:active {
+  transform: translateY(0);
+}
+
+.controles {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.labelPeriodo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.selectPeriodo {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.selectPeriodo:hover {
+  border-color: #999;
+}
+
+.selectPeriodo:focus {
+  outline: none;
+  border-color: #A8D5BA;
+  box-shadow: 0 0 0 3px rgba(168, 213, 186, 0.1);
+}
+
+.resumoGeral {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.cartaoResumo {
+  background: linear-gradient(135deg, #E8F8F0 0%, #EBF8FC 100%);
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  border-left: 4px solid #A8D5BA;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.cartaoResumo:hover {
+  box-shadow: 0 4px 12px rgba(168, 213, 186, 0.3);
+  transform: translateY(-2px);
+}
+
+.valor {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #4A7C8C;
+  margin-bottom: 0.25rem;
+}
+
+.valor.verde {
+  color: #449966;
+}
+
+.valor.vermelho {
+  color: #C64567;
+}
+
+.rotulo {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.subtexto {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.secaoDias {
+  background: linear-gradient(135deg, #E8F8F0 0%, #EBF8FC 100%);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.subtitulo {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #3d6b4f;
+  margin: 0 0 1rem 0;
+}
+
+.listaDias {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.tabelaEmpresas {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.linhaEmpresa {
+  background: white;
+  border: 1px solid rgba(168, 213, 186, 0.3);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.linhaEmpresa:hover {
+  box-shadow: 0 4px 12px rgba(168, 213, 186, 0.3);
+  border-color: #A8D5BA;
+}
+
+.colunaEmpresa {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.nomeEmpresa {
+  font-weight: 700;
+  color: #3d6b4f;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.infoEmpresa {
+  font-size: 0.8rem;
+  color: #C64567;
+  font-weight: 600;
+}
+
+.colunaDias {
+  display: flex;
+  align-items: center;
+}
+
+.listaDiasPequeña {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.itemDiaPequeño {
+  background: linear-gradient(135deg, #FFE8E8 0%, #FFEDED 100%);
+  border: 1px solid rgba(198, 69, 103, 0.3);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.itemDiaPequeño:hover {
+  background: linear-gradient(135deg, #FFCCCC 0%, #FFE0E0 100%);
+  border-color: #C64567;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(198, 69, 103, 0.2);
+}
+
+.dataDia {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #C64567;
+}
+
+.diaSemana {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.mensagemSucesso {
+  background: linear-gradient(135deg, #E8F8F0 0%, #D4EDDA 100%);
+  border: 1px solid #A8D5BA;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  color: #3d6b4f;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.notaDisclaimer {
+  background: linear-gradient(135deg, #E8F8F0 0%, #EBF8FC 100%);
+  border-left: 4px solid #A8D5BA;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 1rem;
+}
+
+.notaDisclaimer strong {
+  color: #3d6b4f;
+}
+
+.carregando {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.erro {
+  color: #C64567;
+  background: linear-gradient(135deg, #FFE8E8 0%, #FFEDED 100%);
+  border-left: 4px solid #FFB8B8;
+  text-align: center;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 10px 0;
+}
+
+.vazio {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-size: 1rem;
+}
+
+/* Responsivo para telas pequenas */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .titulo {
+    font-size: 1.3rem;
+  }
+
+  .cabecalho {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .resumo,
+  .resumoGeral {
+    grid-template-columns: 1fr;
+  }
+
+  .listaDias {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .valor {
+    font-size: 2rem;
+  }
+
+  .linhaEmpresa {
+    grid-template-columns: 1fr;
+  }
+
+  .listaDiasPequeña {
+    width: 100%;
+  }
+}

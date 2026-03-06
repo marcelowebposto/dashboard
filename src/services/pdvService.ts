@@ -157,7 +157,9 @@ class PDVService {
         ? this.convertDataDDMMYYYY(caixa.menorDataCaixaAberto)
         : undefined,
       numeroCaixasFechados: caixa.numeroCaixasFechados,
-      menorDataSemConsolidar: this.convertDataDDMMYYYY(caixa.menorDataSemConsolidar),
+      menorDataSemConsolidar: caixa.menorDataSemConsolidar
+        ? this.convertDataDDMMYYYY(caixa.menorDataSemConsolidar)
+        : undefined,
       tempoMedioConsolidacao: 0, // TODO: calcular a partir dos dados reais
     };
   }

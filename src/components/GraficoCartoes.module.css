@@ -18,26 +18,38 @@
   margin: 0;
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #A8D5BA 0%, #B8E6F0 100%);
+  background: linear-gradient(135deg, #FFB347 0%, #FFD700 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.btnAtualizar {
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #A8D5BA 0%, #B8E6F0 100%);
-  color: #4A7C8C;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
+.labelPeriodo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #333;
 }
 
-.btnAtualizar:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(168, 213, 186, 0.3);
+.selectPeriodo {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.selectPeriodo:hover {
+  border-color: #999;
+}
+
+.selectPeriodo:focus {
+  outline: none;
+  border-color: #FFB347;
+  box-shadow: 0 0 0 3px rgba(255, 179, 71, 0.1);
 }
 
 /* Resumo com cards */

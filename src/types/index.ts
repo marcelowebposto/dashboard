@@ -60,7 +60,7 @@ export interface RelatorioOFX {
 // Tipos para resposta do backend
 export interface CaixasDesconsolidadosResponse {
   CAM: string[]; // Cabeçalhos: ["UNN_CD_UNIDADE_NEGOCIO","ABERTO","MENOR_DATA_ABERTO","FECHADO","MENOR_DATA_SEM_CONSOLIDAR"]
-  DAD: Array<[number, number, string | null, number, string]>; // Dados
+  DAD: Array<[number, number, string | null, number, string | null]>; // Dados
   RET: number; // Código de retorno
 }
 
@@ -69,7 +69,7 @@ export interface CaixasDesconsolidados {
   numeroCaixasAbertos: number;
   menorDataCaixaAberto: string | null;
   numeroCaixasFechados: number;
-  menorDataSemConsolidar: string;
+  menorDataSemConsolidar: string | null;
 }
 
 // Tipos para API de Empresas
