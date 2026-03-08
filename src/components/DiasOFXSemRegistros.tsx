@@ -6,6 +6,7 @@ import {
   formatarData,
   getNomeDiaSemana,
 } from '../services/feriadosService';
+import { SeletorMeses, MesSelecionado, gerarMesAtual } from './SeletorMeses';
 import styles from './DiasOFXSemRegistros.module.css';
 
 interface DiasOFXSemRegistrosProps {
@@ -16,7 +17,7 @@ export const DiasOFXSemRegistros: React.FC<DiasOFXSemRegistrosProps> = ({ refres
   const [relatorio, setRelatorio] = useState<RelatorioOFXCompleto | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [periodoMeses, setPeriodoMeses] = useState(1); // Último mês por padrão
+  const [mesesSelecionados, setMesesSelecionados] = useState<MesSelecionado[]>([gerarMesAtual()]);
   const [expandido, setExpandido] = useState(false); // Começar colapsado
 
   useEffect(() => {
@@ -40,20 +41,35 @@ export const DiasOFXSemRegistros: React.FC<DiasOFXSemRegistrosProps> = ({ refres
 
   // Calcular dias sem registros
   const analise = useMemo(() => {
-    if (!relatorio || relatorio.registrosPorData.length === 0) {
+    if (!relatorio || relatorio.registrosPorData.length === 0 || mesesSelecionados.length === 0) {
       return null;
     }
 
-    // Definir período de análise (últimos N meses completos, excluindo hoje)
+    // Definir período de análise baseado nos meses selecionados
     const hoje = new Date();
     const ontem = new Date(hoje);
     ontem.setDate(ontem.getDate() - 1);
     
-    const dataFim = ontem;
+    // Ordenar meses selecionados e pegar o primeiro e último
+    const mesesOrdenados = [...mesesSelecionados].sort((a, b) => a.chave.localeCompare(b.chave));
+    const primeiroMes = mesesOrdenados[0];
+    const ultimoMes = mesesOrdenados[mesesOrdenados.length - 1];
     
-    // Começar do primeiro dia do mês, N meses atrás
-    // Ex: Se estamos em março e periodoMeses=3, pega janeiro, fevereiro e março
-    const dataInicio = new Date(hoje.getFullYear(), hoje.getMonth() - (periodoMeses - 1), 1);
+    // Data de início: primeiro dia do primeiro mês selecionado
+    const dataInicio = new Date(primeiroMes.ano, primeiroMes.mes - 1, 1);
+    
+    // Data de fim: último dia do último mês selecionado, ou ontem se for o mês atual
+    let dataFim: Date;
+    const mesAtual = hoje.getMonth() + 1;
+    const anoAtual = hoje.getFullYear();
+    
+    if (ultimoMes.ano === anoAtual && ultimoMes.mes === mesAtual) {
+      // Mês atual: usar ontem como data fim
+      dataFim = ontem;
+    } else {
+      // Mês passado: usar último dia do mês
+      dataFim = new Date(ultimoMes.ano, ultimoMes.mes, 0); // dia 0 do próximo mês = último dia do mês
+    }
 
     console.log('[DiasOFXSemRegistros] Período de análise:', dataInicio, 'a', dataFim);
     console.log('[DiasOFXSemRegistros] Total de registros:', relatorio.registrosPorData.length);
@@ -70,7 +86,7 @@ export const DiasOFXSemRegistros: React.FC<DiasOFXSemRegistrosProps> = ({ refres
     console.log('[DiasOFXSemRegistros] Análise por empresa:', resultado);
 
     return resultado;
-  }, [relatorio, periodoMeses]);
+  }, [relatorio, mesesSelecionados]);
 
   const totalDiasFaltandoGeral = useMemo(() => {
     if (!analise) return 0;
@@ -122,18 +138,13 @@ export const DiasOFXSemRegistros: React.FC<DiasOFXSemRegistrosProps> = ({ refres
     <div className={styles.container}>
       <div className={styles.cabecalho}>
         <h2 className={styles.titulo}>Dias sem Registros OFX por Empresa</h2>
-        <label className={styles.labelPeriodo}>
-          Período:
-          <select
-            value={periodoMeses}
-            onChange={(e) => setPeriodoMeses(parseInt(e.target.value, 10))}
-            className={styles.selectPeriodo}
-          >
-            <option value={1}>Último mês</option>
-            <option value={3}>Últimos 3 meses</option>
-            <option value={6}>Últimos 6 meses</option>
-          </select>
-        </label>
+        <div className={styles.labelPeriodo}>
+          <span>Período:</span>
+          <SeletorMeses
+            mesesSelecionados={mesesSelecionados}
+            onChange={setMesesSelecionados}
+          />
+        </div>
       </div>
 
       <div className={styles.resumoGeral}>

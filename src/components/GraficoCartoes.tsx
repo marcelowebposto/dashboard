@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { RelatorioCartoesPagamento } from '../types';
 import pdvService from '../services/pdvService';
+import { SeletorMeses, MesSelecionado, gerarMesAtual } from './SeletorMeses';
 import styles from './GraficoCartoes.module.css';
 
 interface DadosDiarios {
@@ -48,7 +49,7 @@ export const GraficoCartoes: React.FC<GraficoCartoesProps> = ({ refreshKey }) =>
   const [mesSelecionado, setMesSelecionado] = useState<string | null>(null);
   const [mostrarDetalhes, setMostrarDetalhes] = useState(false);
   const [empresaSelecionada, setEmpresaSelecionada] = useState<{ id: number; nome: string } | null>(null);
-  const [periodoMeses, setPeriodoMeses] = useState(1);
+  const [mesesSelecionados, setMesesSelecionados] = useState<MesSelecionado[]>([gerarMesAtual()]);
 
   useEffect(() => {
     carregarDados();
@@ -126,10 +127,14 @@ export const GraficoCartoes: React.FC<GraficoCartoesProps> = ({ refreshKey }) =>
       }
     });
 
+    // Criar set de chaves dos meses selecionados para filtro rápido
+    const chavesMesesSelecionados = new Set(mesesSelecionados.map(m => m.chave));
+
     return Array.from(mesesMap.entries())
       .map(([, dados]) => {
         const mesAbrev = new Date(dados.chaveAno, dados.chaveMes - 1).toLocaleString('pt-BR', { month: 'short' }).replace('.', '');
         const mesCompleto = new Date(dados.chaveAno, dados.chaveMes - 1).toLocaleString('pt-BR', { year: 'numeric', month: 'long' });
+        const chave = `${dados.chaveAno}-${String(dados.chaveMes).padStart(2, '0')}`;
         return {
           mes: mesCompleto,
           mesAbrev: `${mesAbrev}/${dados.chaveAno % 100}`,
@@ -139,11 +144,69 @@ export const GraficoCartoes: React.FC<GraficoCartoesProps> = ({ refreshKey }) =>
           total: dados.total,
           percentual: dados.total > 0 ? (dados.recebido / dados.total) * 100 : 0,
           _sortKey: dados.chaveAno * 100 + dados.chaveMes,
+          _chave: chave,
         };
       })
-      .sort((a, b) => a._sortKey - b._sortKey)
-      .slice(-periodoMeses);
-  }, [relatorio, periodoMeses]);
+      .filter(d => chavesMesesSelecionados.has(d._chave))
+      .sort((a, b) => a._sortKey - b._sortKey);
+  }, [relatorio, mesesSelecionados]);
+
+  // Calcular dados por empresa para o período selecionado (independente do mês clicado)
+  const dadosEmpresasPorPeriodo = useMemo(() => {
+    if (!relatorio || dadosMensaisGrafico.length === 0) return [];
+
+    // Obter os meses que estão no gráfico (já filtrados pelo período)
+    const mesesNoPeriodo = new Set(dadosMensaisGrafico.map(d => d.mes));
+
+    const empresasMap = new Map<number, { recebido: number; emRemessaAberta: number; aberto: number; total: number }>();
+
+    relatorio.registrosPorData.forEach((registro) => {
+      try {
+        const partes = registro.data.split('/');
+        let mes: number, ano: number;
+
+        if (partes.length === 3) {
+          mes = parseInt(partes[1], 10);
+          ano = parseInt(partes[2], 10);
+        } else if (registro.data.includes('-')) {
+          const partesISO = registro.data.split('-');
+          ano = parseInt(partesISO[0], 10);
+          mes = parseInt(partesISO[1], 10);
+        } else {
+          return;
+        }
+
+        // Verificar se está no período
+        const mesCompleto = new Date(ano, mes - 1).toLocaleString('pt-BR', { year: 'numeric', month: 'long' });
+        if (!mesesNoPeriodo.has(mesCompleto)) return;
+
+        if (!empresasMap.has(registro.empresaId)) {
+          empresasMap.set(registro.empresaId, { recebido: 0, emRemessaAberta: 0, aberto: 0, total: 0 });
+        }
+
+        const dados = empresasMap.get(registro.empresaId)!;
+        dados.recebido += registro.recebido;
+        dados.emRemessaAberta += registro.emRemessaAberta;
+        dados.aberto += registro.aberto;
+        dados.total += registro.total;
+      } catch (e) {
+        console.error('Erro ao processar registro:', e);
+      }
+    });
+
+    return Array.from(empresasMap.entries()).map(([empresaId, dados]) => {
+      const empresa = relatorio.empresas.find(e => e.empresaId === empresaId);
+      return {
+        empresaId,
+        empresaNome: empresa?.empresaNome || `Empresa ${empresaId}`,
+        recebido: dados.recebido,
+        emRemessaAberta: dados.emRemessaAberta,
+        aberto: dados.aberto,
+        total: dados.total,
+        percentualRecebido: dados.total > 0 ? (dados.recebido / dados.total) * 100 : 0,
+      };
+    });
+  }, [relatorio, dadosMensaisGrafico]);
 
   // Calcular dados por empresa para o mês selecionado
   const dadosEmpresasPorMes = useMemo(() => {
@@ -205,7 +268,8 @@ export const GraficoCartoes: React.FC<GraficoCartoesProps> = ({ refreshKey }) =>
   const empresasFiltradas = useMemo(() => {
     if (!relatorio) return [];
 
-    const dadosBase = dadosEmpresasPorMes || relatorio.empresas;
+    // Usar dados do mês selecionado, ou dados do período filtrado
+    const dadosBase = dadosEmpresasPorMes || dadosEmpresasPorPeriodo;
     
     let resultado = dadosBase.filter((empresa) =>
       empresa.empresaNome.toLowerCase().includes(filtro.toLowerCase())
@@ -219,18 +283,19 @@ export const GraficoCartoes: React.FC<GraficoCartoesProps> = ({ refreshKey }) =>
     });
 
     return resultado;
-  }, [relatorio, dadosEmpresasPorMes, filtro, ordenacao]);
+  }, [relatorio, dadosEmpresasPorMes, dadosEmpresasPorPeriodo, filtro, ordenacao]);
 
   const empresasExibidas = mostrarTodos ? empresasFiltradas : empresasFiltradas.slice(0, 20);
 
-  // Calcular percentual médio
+  // Calcular percentual médio (usando dados do período filtrado)
   const percentualMedio = useMemo(() => {
-    if (!relatorio || relatorio.empresas.length === 0) return 0;
-    const soma = relatorio.empresas.reduce((acc, emp) => acc + emp.percentualRecebido, 0);
-    return soma / relatorio.empresas.length;
-  }, [relatorio]);
+    const dados = dadosEmpresasPorMes || dadosEmpresasPorPeriodo;
+    if (dados.length === 0) return 0;
+    const soma = dados.reduce((acc, emp) => acc + emp.percentualRecebido, 0);
+    return soma / dados.length;
+  }, [dadosEmpresasPorMes, dadosEmpresasPorPeriodo]);
 
-  // Obter dados diários de uma empresa específica (filtrado por mês se selecionado)
+  // Obter dados diários de uma empresa específica (filtrado por mês ou período)
   const dadosDiariosEmpresa = useMemo((): DadosDiarios[] => {
     if (!relatorio || !empresaSelecionada) return [];
 
@@ -238,23 +303,28 @@ export const GraficoCartoes: React.FC<GraficoCartoesProps> = ({ refreshKey }) =>
       (r) => r.empresaId === empresaSelecionada.id
     );
 
-    // Filtrar pelo mês selecionado se houver
-    if (mesSelecionado) {
-      registrosEmpresa = registrosEmpresa.filter((registro) => {
-        try {
-          const partes = registro.data.split('/');
-          if (partes.length === 3) {
-            const mes = parseInt(partes[1], 10);
-            const ano = parseInt(partes[2], 10);
-            const mesCompleto = new Date(ano, mes - 1).toLocaleString('pt-BR', { year: 'numeric', month: 'long' });
+    // Obter os meses que estão no gráfico (já filtrados pelo período)
+    const mesesNoPeriodo = new Set(dadosMensaisGrafico.map(d => d.mes));
+
+    // Filtrar pelo mês selecionado se houver, senão filtrar pelo período
+    registrosEmpresa = registrosEmpresa.filter((registro) => {
+      try {
+        const partes = registro.data.split('/');
+        if (partes.length === 3) {
+          const mes = parseInt(partes[1], 10);
+          const ano = parseInt(partes[2], 10);
+          const mesCompleto = new Date(ano, mes - 1).toLocaleString('pt-BR', { year: 'numeric', month: 'long' });
+          
+          if (mesSelecionado) {
             return mesCompleto === mesSelecionado;
           }
-        } catch (e) {
-          return false;
+          return mesesNoPeriodo.has(mesCompleto);
         }
+      } catch (e) {
         return false;
-      });
-    }
+      }
+      return false;
+    });
 
     return registrosEmpresa
       .map((registro) => ({
@@ -273,7 +343,7 @@ export const GraficoCartoes: React.FC<GraficoCartoesProps> = ({ refreshKey }) =>
         const dataB = new Date(parseInt(partesB[2]), parseInt(partesB[1]) - 1, parseInt(partesB[0]));
         return dataB.getTime() - dataA.getTime();
       });
-  }, [relatorio, empresaSelecionada, mesSelecionado]);
+  }, [relatorio, empresaSelecionada, mesSelecionado, dadosMensaisGrafico]);
 
   const getCorBarra = (percentual: number): string => {
     if (percentual >= 90) return '#4CAF50';
@@ -311,18 +381,13 @@ export const GraficoCartoes: React.FC<GraficoCartoesProps> = ({ refreshKey }) =>
     <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.titulo}>Cartões de Pagamento</h2>
-        <label className={styles.labelPeriodo}>
-          Período:
-          <select
-            value={periodoMeses}
-            onChange={(e) => setPeriodoMeses(parseInt(e.target.value, 10))}
-            className={styles.selectPeriodo}
-          >
-            <option value={1}>Último mês</option>
-            <option value={3}>Últimos 3 meses</option>
-            <option value={6}>Últimos 6 meses</option>
-          </select>
-        </label>
+        <div className={styles.labelPeriodo}>
+          <span>Período:</span>
+          <SeletorMeses
+            mesesSelecionados={mesesSelecionados}
+            onChange={setMesesSelecionados}
+          />
+        </div>
       </div>
 
       {/* Cards de resumo */}
@@ -526,13 +591,13 @@ export const GraficoCartoes: React.FC<GraficoCartoesProps> = ({ refreshKey }) =>
                     {empresa.empresaNome}
                   </span>
                   <span className={styles.colNumeros}>
-                    {'totalRecebido' in empresa ? empresa.totalRecebido.toLocaleString('pt-BR') : empresa.recebido.toLocaleString('pt-BR')}
+                    {empresa.recebido.toLocaleString('pt-BR')}
                   </span>
                   <span className={styles.colNumeros}>
-                    {'totalEmRemessaAberta' in empresa ? empresa.totalEmRemessaAberta.toLocaleString('pt-BR') : empresa.emRemessaAberta.toLocaleString('pt-BR')}
+                    {empresa.emRemessaAberta.toLocaleString('pt-BR')}
                   </span>
                   <span className={styles.colNumeros}>
-                    {'totalAberto' in empresa ? empresa.totalAberto.toLocaleString('pt-BR') : empresa.aberto.toLocaleString('pt-BR')}
+                    {empresa.aberto.toLocaleString('pt-BR')}
                   </span>
                   <span className={styles.colNumeros}>
                     {empresa.total.toLocaleString('pt-BR')}

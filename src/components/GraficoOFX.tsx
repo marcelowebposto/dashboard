@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { RelatorioOFXCompleto } from '../types';
 import pdvService from '../services/pdvService';
+import { SeletorMeses, MesSelecionado, gerarMesAtual } from './SeletorMeses';
 import styles from './GraficoOFX.module.css';
 
 interface DadosMensaisGrafico {
@@ -46,7 +47,7 @@ export const GraficoOFX: React.FC<GraficoOFXProps> = ({ refreshKey }) => {
   const [mesSelecionado, setMesSelecionado] = useState<string | null>(null);
   const [mostrarDetalhes, setMostrarDetalhes] = useState(false);
   const [empresaSelecionada, setEmpresaSelecionada] = useState<{ id: number; nome: string } | null>(null);
-  const [periodoMeses, setPeriodoMeses] = useState(1);
+  const [mesesSelecionados, setMesesSelecionados] = useState<MesSelecionado[]>([gerarMesAtual()]);
 
   useEffect(() => {
     carregarDados();
@@ -122,11 +123,15 @@ export const GraficoOFX: React.FC<GraficoOFXProps> = ({ refreshKey }) => {
       }
     });
 
+    // Criar set de chaves dos meses selecionados para filtro rápido
+    const chavesMesesSelecionados = new Set(mesesSelecionados.map(m => m.chave));
+
     return Array.from(mesesMap.entries())
       .map(([, dados]) => {
         const mesAbrev = new Date(dados.chaveAno, dados.chaveMes - 1).toLocaleString('pt-BR', { month: 'short' }).replace('.', '');
         const mesCompleto = new Date(dados.chaveAno, dados.chaveMes - 1).toLocaleString('pt-BR', { year: 'numeric', month: 'long' });
         const total = dados.conciliados + dados.naoConciliados;
+        const chave = `${dados.chaveAno}-${String(dados.chaveMes).padStart(2, '0')}`;
         return {
           mes: mesCompleto,
           mesAbrev: `${mesAbrev}/${dados.chaveAno % 100}`,
@@ -135,11 +140,56 @@ export const GraficoOFX: React.FC<GraficoOFXProps> = ({ refreshKey }) => {
           total,
           percentual: total > 0 ? (dados.conciliados / total) * 100 : 0,
           _sortKey: dados.chaveAno * 100 + dados.chaveMes,
+          _chave: chave,
         };
       })
-      .sort((a, b) => a._sortKey - b._sortKey)
-      .slice(-periodoMeses);
-  }, [relatorio, periodoMeses]);
+      .filter(d => chavesMesesSelecionados.has(d._chave))
+      .sort((a, b) => a._sortKey - b._sortKey);
+  }, [relatorio, mesesSelecionados]);
+
+  // Calcular dados por empresa para o período selecionado (independente do mês clicado)
+  const dadosEmpresasPorPeriodo = useMemo(() => {
+    if (!relatorio || dadosMensaisGrafico.length === 0) return new Map<number, { conciliados: number; naoConciliados: number }>();
+
+    // Obter os meses que estão no gráfico (já filtrados pelo período)
+    const mesesNoPeriodo = new Set(dadosMensaisGrafico.map(d => d.mes));
+
+    const empresasMap = new Map<number, { conciliados: number; naoConciliados: number }>();
+
+    relatorio.registrosPorData.forEach((registro) => {
+      try {
+        const partes = registro.data.split('/');
+        let mes: number, ano: number;
+
+        if (partes.length === 3) {
+          mes = parseInt(partes[1], 10);
+          ano = parseInt(partes[2], 10);
+        } else if (registro.data.includes('-')) {
+          const partesISO = registro.data.split('-');
+          ano = parseInt(partesISO[0], 10);
+          mes = parseInt(partesISO[1], 10);
+        } else {
+          return;
+        }
+
+        // Verificar se está no período
+        const mesCompleto = new Date(ano, mes - 1).toLocaleString('pt-BR', { year: 'numeric', month: 'long' });
+        if (!mesesNoPeriodo.has(mesCompleto)) return;
+
+        if (!empresasMap.has(registro.empresaId)) {
+          empresasMap.set(registro.empresaId, { conciliados: 0, naoConciliados: 0 });
+        }
+
+        const dados = empresasMap.get(registro.empresaId)!;
+        dados.conciliados += registro.quantidadeConciliados;
+        dados.naoConciliados += registro.quantidadeNaoConciliados;
+      } catch (e) {
+        console.error('Erro ao processar data:', registro.data);
+      }
+    });
+
+    return empresasMap;
+  }, [relatorio, dadosMensaisGrafico]);
 
   // Calcular dados por empresa para o mês selecionado
   const dadosEmpresasPorMes = useMemo(() => {
@@ -209,6 +259,20 @@ export const GraficoOFX: React.FC<GraficoOFXProps> = ({ refreshKey }) => {
             percentualConciliacao: total > 0 ? (dados.conciliados / total) * 100 : 0,
           };
         });
+    } else {
+      // Usar dados filtrados pelo período selecionado
+      empresas = empresas
+        .filter((e) => dadosEmpresasPorPeriodo.has(e.empresaId))
+        .map((e) => {
+          const dados = dadosEmpresasPorPeriodo.get(e.empresaId)!;
+          const total = dados.conciliados + dados.naoConciliados;
+          return {
+            ...e,
+            totalConciliados: dados.conciliados,
+            totalNaoConciliados: dados.naoConciliados,
+            percentualConciliacao: total > 0 ? (dados.conciliados / total) * 100 : 0,
+          };
+        });
     }
 
     return empresas.sort((a, b) => {
@@ -217,11 +281,17 @@ export const GraficoOFX: React.FC<GraficoOFXProps> = ({ refreshKey }) => {
       }
       return a.percentualConciliacao - b.percentualConciliacao;
     });
-  }, [relatorio, filtro, ordenacao, mesSelecionado, dadosEmpresasPorMes]);
+  }, [relatorio, filtro, ordenacao, mesSelecionado, dadosEmpresasPorMes, dadosEmpresasPorPeriodo]);
 
-  const percentualMedio = relatorio?.percentualConciliacaoGeral ?? 0;
+  // Percentual médio calculado com base no período filtrado
+  const percentualMedio = useMemo(() => {
+    if (dadosMensaisGrafico.length === 0) return 0;
+    const totalConciliados = dadosMensaisGrafico.reduce((acc, m) => acc + m.conciliados, 0);
+    const totalGeral = dadosMensaisGrafico.reduce((acc, m) => acc + m.total, 0);
+    return totalGeral > 0 ? (totalConciliados / totalGeral) * 100 : 0;
+  }, [dadosMensaisGrafico]);
 
-  // Obter dados diários de uma empresa específica (filtrado por mês se selecionado)
+  // Obter dados diários de uma empresa específica (filtrado por mês ou período)
   const dadosDiariosEmpresa = useMemo((): DadosDiariosOFX[] => {
     if (!relatorio || !empresaSelecionada) return [];
 
@@ -229,23 +299,28 @@ export const GraficoOFX: React.FC<GraficoOFXProps> = ({ refreshKey }) => {
       (r) => r.empresaId === empresaSelecionada.id
     );
 
-    // Filtrar pelo mês selecionado se houver
-    if (mesSelecionado) {
-      registrosEmpresa = registrosEmpresa.filter((registro) => {
-        try {
-          const partes = registro.data.split('/');
-          if (partes.length === 3) {
-            const mes = parseInt(partes[1], 10);
-            const ano = parseInt(partes[2], 10);
-            const mesCompleto = new Date(ano, mes - 1).toLocaleString('pt-BR', { year: 'numeric', month: 'long' });
+    // Obter os meses que estão no gráfico (já filtrados pelo período)
+    const mesesNoPeriodo = new Set(dadosMensaisGrafico.map(d => d.mes));
+
+    // Filtrar pelo mês selecionado se houver, senão filtrar pelo período
+    registrosEmpresa = registrosEmpresa.filter((registro) => {
+      try {
+        const partes = registro.data.split('/');
+        if (partes.length === 3) {
+          const mes = parseInt(partes[1], 10);
+          const ano = parseInt(partes[2], 10);
+          const mesCompleto = new Date(ano, mes - 1).toLocaleString('pt-BR', { year: 'numeric', month: 'long' });
+          
+          if (mesSelecionado) {
             return mesCompleto === mesSelecionado;
           }
-        } catch (e) {
-          return false;
+          return mesesNoPeriodo.has(mesCompleto);
         }
+      } catch (e) {
         return false;
-      });
-    }
+      }
+      return false;
+    });
 
     return registrosEmpresa
       .map((registro) => ({
@@ -263,7 +338,7 @@ export const GraficoOFX: React.FC<GraficoOFXProps> = ({ refreshKey }) => {
         const dataB = new Date(parseInt(partesB[2]), parseInt(partesB[1]) - 1, parseInt(partesB[0]));
         return dataB.getTime() - dataA.getTime();
       });
-  }, [relatorio, empresaSelecionada, mesSelecionado]);
+  }, [relatorio, empresaSelecionada, mesSelecionado, dadosMensaisGrafico]);
 
   const getCorBarra = (percentual: number): string => {
     if (percentual >= 95) return '#A8D5BA';
@@ -292,18 +367,13 @@ export const GraficoOFX: React.FC<GraficoOFXProps> = ({ refreshKey }) => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.titulo}>Conciliação de OFX</h2>
-        <label className={styles.labelPeriodo}>
-          Período:
-          <select
-            value={periodoMeses}
-            onChange={(e) => setPeriodoMeses(parseInt(e.target.value, 10))}
-            className={styles.selectPeriodo}
-          >
-            <option value={1}>Último mês</option>
-            <option value={3}>Últimos 3 meses</option>
-            <option value={6}>Últimos 6 meses</option>
-          </select>
-        </label>
+        <div className={styles.labelPeriodo}>
+          <span>Período:</span>
+          <SeletorMeses
+            mesesSelecionados={mesesSelecionados}
+            onChange={setMesesSelecionados}
+          />
+        </div>
       </div>
 
       {/* Cards de resumo */}

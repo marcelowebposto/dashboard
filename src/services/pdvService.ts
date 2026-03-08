@@ -147,7 +147,7 @@ class PDVService {
     caixa: CaixasDesconsolidados
   ): Promise<IndicadorEmpresa> {
     const empresaInfo = await this.getEmpresaInfo(caixa.empresaId);
-    const empresaNome = empresaInfo?.fantasia || empresaInfo?.sigla || `Empresa ${caixa.empresaId}`;
+    const empresaNome = empresaInfo?.sigla || empresaInfo?.fantasia || `Empresa ${caixa.empresaId}`;
 
     return {
       empresaId: `emp-${caixa.empresaId}`,
@@ -287,7 +287,7 @@ class PDVService {
 
         if (!empresasMap.has(registro.empresaId)) {
           const empresaInfo = await this.getEmpresaInfo(registro.empresaId);
-          const empresaNome = empresaInfo?.fantasia || empresaInfo?.sigla || `Empresa ${registro.empresaId}`;
+          const empresaNome = empresaInfo?.sigla || empresaInfo?.fantasia || `Empresa ${registro.empresaId}`;
 
           empresasMap.set(registro.empresaId, {
             empresaId: registro.empresaId,
@@ -390,7 +390,7 @@ class PDVService {
 
         if (!empresasMap.has(registro.empresaId)) {
           const empresaInfo = await this.getEmpresaInfo(registro.empresaId);
-          const empresaNome = empresaInfo?.fantasia || empresaInfo?.sigla || `Empresa ${registro.empresaId}`;
+          const empresaNome = empresaInfo?.sigla || empresaInfo?.fantasia || `Empresa ${registro.empresaId}`;
 
           empresasMap.set(registro.empresaId, {
             empresaId: registro.empresaId,
