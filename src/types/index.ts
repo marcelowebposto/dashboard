@@ -24,6 +24,10 @@ export interface IndicadorEmpresa {
   numeroCaixasFechados: number;
   menorDataSemConsolidar?: string;
   tempoMedioConsolidacao: number; // em minutos
+  numeroCaixasBloqueados?: number;
+  menorDataBloqueado?: string;
+  numeroCaixasDesbloqueados?: number;
+  menorDataSemBloquear?: string;
 }
 
 // Manter compatibilidade com tipo antigo
@@ -59,8 +63,8 @@ export interface RelatorioOFX {
 }
 // Tipos para resposta do backend
 export interface CaixasDesconsolidadosResponse {
-  CAM: string[]; // Cabeçalhos: ["UNN_CD_UNIDADE_NEGOCIO","ABERTO","MENOR_DATA_ABERTO","FECHADO","MENOR_DATA_SEM_CONSOLIDAR"]
-  DAD: Array<[number, number, string | null, number, string | null]>; // Dados
+  CAM: string[]; // Cabeçalhos: ["UNN_CD_UNIDADE_NEGOCIO","ABERTO","MENOR_DATA_ABERTO","FECHADO","MENOR_DATA_SEM_CONSOLIDAR","BLOQUEADO","MENOR_DATA_BLOQUEADO","DESBLOQUEADO","MENOR_DATA_SEM_BLOQUEAR"]
+  DAD: Array<[number, number, string | null, number, string | null, number, string | null, number, string | null]>; // Dados
   RET: number; // Código de retorno
 }
 
@@ -70,6 +74,10 @@ export interface CaixasDesconsolidados {
   menorDataCaixaAberto: string | null;
   numeroCaixasFechados: number;
   menorDataSemConsolidar: string | null;
+  numeroCaixasBloqueados: number;
+  menorDataBloqueado: string | null;
+  numeroCaixasDesbloqueados: number;
+  menorDataSemBloquear: string | null;
 }
 
 // Tipos para API de Empresas
@@ -163,4 +171,22 @@ export interface RelatorioCartoesPagamento {
   totalGeralAberto: number;
   totalGeral: number;
   percentualRecebidoGeral: number;
+}
+// LMC - Última Movimentação de Combustível
+export interface LMCRegistro {
+  empresaId: number;
+  produtoLMC: string;
+  maiorLMC: string; // dd/mm/yyyy
+}
+
+export interface LMCData {
+  empresaId: number;
+  data: string; // ISO format
+  empresaNome: string;
+  produtos: LMCRegistro[];
+}
+
+export interface RelatorioLMCCompleto {
+  empresas: Array<{ empresaId: number; empresaNome: string }>;
+  registrosPorData: LMCData[];
 }

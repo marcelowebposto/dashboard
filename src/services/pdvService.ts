@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { DashboardData, IndicadorEmpresa, RelatorioOFX, CaixasDesconsolidadosResponse, CaixasDesconsolidados, Empresa, EmpresasResponse, OFXResponse, OFXRegistro, OFXEmpresa, RelatorioOFXCompleto, CartaoPagamentoResponse, CartaoPagamentoRegistro, CartaoPagamentoEmpresa, RelatorioCartoesPagamento } from '../types';
+import { DashboardData, IndicadorEmpresa, RelatorioOFX, CaixasDesconsolidadosResponse, CaixasDesconsolidados, Empresa, EmpresasResponse, OFXResponse, OFXRegistro, OFXEmpresa, RelatorioOFXCompleto, CartaoPagamentoResponse, CartaoPagamentoRegistro, CartaoPagamentoEmpresa, RelatorioCartoesPagamento, RelatorioLMCCompleto, LMCRegistro } from '../types';
 import { mockIndicadores, mockRelatorioOFX } from './mockData';
 import authService from './authService';
 import configService from './configService';
@@ -130,6 +130,10 @@ class PDVService {
         menorDataCaixaAberto: linha[2],
         numeroCaixasFechados: linha[3],
         menorDataSemConsolidar: linha[4],
+        numeroCaixasBloqueados: linha[5],
+        menorDataBloqueado: linha[6],
+        numeroCaixasDesbloqueados: linha[7],
+        menorDataSemBloquear: linha[8],
       }));
 
       console.log('[pdvService] Caixas convertidos:', caixas.length);
@@ -161,6 +165,14 @@ class PDVService {
         ? this.convertDataDDMMYYYY(caixa.menorDataSemConsolidar)
         : undefined,
       tempoMedioConsolidacao: 0, // TODO: calcular a partir dos dados reais
+      numeroCaixasBloqueados: caixa.numeroCaixasBloqueados,
+      menorDataBloqueado: caixa.menorDataBloqueado
+        ? this.convertDataDDMMYYYY(caixa.menorDataBloqueado)
+        : undefined,
+      numeroCaixasDesbloqueados: caixa.numeroCaixasDesbloqueados,
+      menorDataSemBloquear: caixa.menorDataSemBloquear
+        ? this.convertDataDDMMYYYY(caixa.menorDataSemBloquear)
+        : undefined,
     };
   }
 
@@ -441,6 +453,98 @@ class PDVService {
       if (error instanceof Error) {
         console.error('[pdvService] Mensagem:', error.message);
         console.error('[pdvService] Stack:', error.stack);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Obter dados de LMC (Última Movimentação de Combustível)
+   */
+  async getLMC(): Promise<RelatorioLMCCompleto> {
+    try {
+      const url = `${API_BASE_URL}/PAINEL_OPERACAO/LMC_DATA`;
+      console.log('[pdvService] Buscando dados LMC em:', url);
+
+      const response = await api.get<{ CAM: string[]; DAD: Array<[number, string, string]>; RET: number }>(url, {
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      const { DAD, RET } = response.data;
+
+      console.log('[pdvService] Resposta LMC recebida. RET:', RET, 'Registros:', DAD.length);
+
+      if (RET !== 0) {
+        console.warn(`[pdvService] Aviso: API LMC retornou RET=${RET}`);
+      }
+
+      // Converter de CAM/DAD para LMCRegistro
+      const registrosBrutos: LMCRegistro[] = DAD.map((linha) => ({
+        empresaId: linha[0],
+        produtoLMC: linha[1],
+        maiorLMC: linha[2],
+      }));
+
+      console.log('[pdvService] LMC convertidos:', registrosBrutos.length, 'registros');
+
+      // Agrupar por empresa e data
+      const registrosPorEmpresaData = new Map<string, Map<string, LMCRegistro[]>>();
+      const empresasSet = new Set<number>();
+
+      for (const registro of registrosBrutos) {
+        const data = this.convertDataDDMMYYYY(registro.maiorLMC);
+        const chaveEmpresa = `emp-${registro.empresaId}`;
+        const chaveTempo = `${chaveEmpresa}:${data}`;
+
+        empresasSet.add(registro.empresaId);
+
+        if (!registrosPorEmpresaData.has(chaveEmpresa)) {
+          registrosPorEmpresaData.set(chaveEmpresa, new Map());
+        }
+
+        const dataMap = registrosPorEmpresaData.get(chaveEmpresa)!;
+        if (!dataMap.has(data)) {
+          dataMap.set(data, []);
+        }
+
+        dataMap.get(data)!.push(registro);
+      }
+
+      // Construir array de dados por data para cada empresa
+      const registrosPorData: LMCData[] = [];
+      for (const [chaveEmpresa, dataMap] of registrosPorEmpresaData.entries()) {
+        for (const [dataISO, produtos] of dataMap.entries()) {
+          const empresaId = parseInt(chaveEmpresa.replace('emp-', ''));
+          const empresaInfo = await this.getEmpresaInfo(empresaId);
+          const empresaNome = empresaInfo?.sigla || empresaInfo?.fantasia || `Empresa ${empresaId}`;
+
+          registrosPorData.push({
+            empresaId,
+            data: dataISO,
+            empresaNome,
+            produtos,
+          });
+        }
+      }
+
+      // Preparar lista de empresas
+      const empresas = Array.from(empresasSet).map((id) => ({
+        empresaId: id,
+        empresaNome: `Empresa ${id}`,
+      }));
+
+      console.log('[pdvService] LMC agregado:', empresas.length, 'empresas');
+
+      return {
+        empresas,
+        registrosPorData,
+      };
+    } catch (error) {
+      console.error('[pdvService] Erro ao buscar LMC:', error);
+      if (error instanceof Error) {
+        console.error('[pdvService] Mensagem:', error.message);
       }
       throw error;
     }

@@ -3,9 +3,11 @@ import { IndicadorEmpresa } from '../types';
 import pdvService from '../services/pdvService';
 import CaixasAbertosPanel from './CaixasAbertosPanel';
 import ConsolidacaoCaixasPanel from './ConsolidacaoCaixasPanel';
+import BloqueiosCaixasPanel from './BloqueiosCaixasPanel';
 import GraficoOFX from './GraficoOFX';
 import GraficoCartoes from './GraficoCartoes';
 import DiasOFXSemRegistros from './DiasOFXSemRegistros';
+import DiasLMCSemRegistros from './DiasLMCSemRegistros';
 import styles from './Dashboard.module.css';
 
 export const Dashboard: React.FC = () => {
@@ -70,8 +72,10 @@ export const Dashboard: React.FC = () => {
         <main className={styles.conteudo}>
           <CaixasAbertosPanel indicadores={indicadores} />
           <ConsolidacaoCaixasPanel indicadores={indicadores} />
+          <BloqueiosCaixasPanel indicadores={indicadores} />
           <GraficoOFX refreshKey={refreshKey} />
           <DiasOFXSemRegistros refreshKey={refreshKey} />
+          <DiasLMCSemRegistros refreshKey={refreshKey} />
           <GraficoCartoes refreshKey={refreshKey} />
         </main>
       )}
