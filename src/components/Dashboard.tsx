@@ -71,7 +71,7 @@ export const Dashboard: React.FC = () => {
       {!loading && !erro && indicadores.length > 0 && (
         <main className={styles.conteudo}>
           <CaixasAbertosPanel indicadores={indicadores} />
-          <ConsolidacaoCaixasPanel indicadores={indicadores} />
+          {/* <ConsolidacaoCaixasPanel indicadores={indicadores} /> */}
           <BloqueiosCaixasPanel indicadores={indicadores} />
           <GraficoOFX refreshKey={refreshKey} />
           <DiasOFXSemRegistros refreshKey={refreshKey} />
